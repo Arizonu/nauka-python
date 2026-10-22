@@ -20,6 +20,10 @@ Moja nauka analizy danych w Pythonie: 12 tygodni, ok. 5 godzin tygodniowo, obok 
 
 Wejdź w plik `.ipynb` w folderze tygodnia i kliknij przycisk "Open in Colab" na górze notebooka.
 
+## Powtórki
+
+- Tydzień 1: [ściąga z teorii, fiszki i quiz](https://claude.ai/artifact/2uFGiTdgnAvTqs2XR3Sce4) (kopia strony: `tydzien-01/sciaga.html`)
+
 ## Materiały
 
 [Kaggle Learn](https://www.kaggle.com/learn), [Khan Academy Statistics](https://www.khanacademy.org/math/statistics-probability), [SQLBolt](https://sqlbolt.com).
