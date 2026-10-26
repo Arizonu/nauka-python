@@ -22,7 +22,7 @@ Wejdź w plik `.ipynb` w folderze tygodnia i kliknij przycisk "Open in Colab" na
 
 ## Powtórki
 
-- Tydzień 1: [ściąga z teorii, fiszki i quiz](https://claude.ai/artifact/2uFGiTdgnAvTqs2XR3Sce4) (kopia strony: `tydzien-01/sciaga.html`)
+- Tydzień 1: [ściąga z teorii, fiszki i quiz](https://claude.ai/artifact/2uFGiTdgnAvTqs2XR3Sce4) (kopia strony: `tydzien-01/sciaga.html`, dłuższa wersja: `tydzien-01/sciaga-pelna.html`)
 
 ## Materiały
 

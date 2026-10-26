@@ -2,692 +2,263 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: zeszyt laboratoryjny. Jedna kolumna do czytania (~68ch), każdy temat to "karta pojęcia":
-   najpierw zdanie "co to jest", potem rysunek, kod i "zapamiętaj". Na końcu fiszki i quiz. */
+/* Layout: jeden temat na ekran, jak karta w zeszycie. Duży tekst, jedno zdanie, jeden przykład,
+   jedna pułapka. Na dole stały pasek Wstecz / Dalej. Na końcu mini-quiz, też po jednym pytaniu. */
 :root{
-  --paper:#eef2f4; --card:#ffffff; --ink:#14212b; --muted:#536471; --line:#cfd9df;
+  --paper:#eef2f4; --card:#ffffff; --ink:#14212b; --muted:#5a6b78; --line:#d3dce2;
   --accent:#0a6e78; --accent-soft:#d6ecee; --mark:#e9b92f; --mark-soft:#fbf0c7;
   --bad:#b3261e; --bad-soft:#f8dedb; --good:#1e7a46; --good-soft:#dcefe3;
-  --code:#16222b; --code-fg:#e6edf2; --c-str:#9fdc96; --c-num:#f5c66b; --c-fn:#7fd3dc; --c-com:#7f909c; --c-kw:#f19ab0;
-  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
-  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
-  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --code:#16222b; --code-fg:#e6edf2; --c-str:#9fdc96; --c-num:#f5c66b; --c-fn:#7fd3dc; --c-com:#8a9ba7;
+  --display:"Bricolage Grotesque","Avenir Next",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#0f171d; --card:#16212a; --ink:#e3eaef; --muted:#93a4b1; --line:#2a3843;
+  --paper:#0f171d; --card:#16212a; --ink:#e3eaef; --muted:#9aabb8; --line:#2a3843;
   --accent:#4fc1c9; --accent-soft:#12343a; --mark:#f2c84b; --mark-soft:#3a3214;
   --bad:#ff8a80; --bad-soft:#3d1d1b; --good:#6fd49a; --good-soft:#173325; --code:#0a1116; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#0f171d; --card:#16212a; --ink:#e3eaef; --muted:#93a4b1; --line:#2a3843;
+  --paper:#0f171d; --card:#16212a; --ink:#e3eaef; --muted:#9aabb8; --line:#2a3843;
   --accent:#4fc1c9; --accent-soft:#12343a; --mark:#f2c84b; --mark-soft:#3a3214;
   --bad:#ff8a80; --bad-soft:#3d1d1b; --good:#6fd49a; --good-soft:#173325; --code:#0a1116; color-scheme:dark}
 
 *{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);
-  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-  background-size:28px 28px;background-attachment:fixed}
-.wrap{max-width:760px;margin:0 auto;padding-block:28px 80px;
+body{background:var(--paper);color:var(--ink);font:19px/1.55 var(--body)}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 120px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:flex;flex-direction:column;gap:28px}
-h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
-h1{font-size:clamp(2rem,6vw,3rem);font-weight:800;letter-spacing:-.02em}
-h2{font-size:1.6rem;font-weight:700}
-h3{font-size:1.1rem;font-weight:700}
+  display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:1.15rem;font-weight:800;color:var(--accent)}
+h2{font-size:clamp(1.8rem,6vw,2.3rem);font-weight:800;letter-spacing:-.01em}
 p{margin:0}
-code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);padding:.05em .35em;border-radius:4px}
-a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.9em;background:var(--accent-soft);padding:.05em .35em;border-radius:5px}
 :focus-visible{outline:3px solid var(--mark);outline-offset:2px}
 
-/* hero */
-.hero{display:flex;flex-direction:column;gap:14px;padding-top:8px}
-.eyebrow{font:600 .78rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.lede{font-size:1.1rem;color:var(--muted);max-width:60ch}
-.terminal{background:var(--code);color:var(--code-fg);border-radius:12px;padding:16px 18px;font:15px/1.6 var(--mono);overflow-x:auto}
-.terminal .out{color:var(--c-num);display:block;margin-top:6px}
-.terminal .out::before{content:"→ ";color:var(--c-com)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.count{font:600 .85rem var(--mono);color:var(--muted)}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--muted);font:600 .75rem var(--mono);cursor:pointer;display:grid;place-items:center;padding:0}
+.dot.done{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.dot.now{background:var(--accent);border-color:var(--accent);color:var(--card)}
 
-/* spis */
-.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:0;margin:0;list-style:none}
-.toc a{display:flex;gap:8px;align-items:baseline;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:.95rem;min-height:44px}
-.toc a span{font:600 .75rem var(--mono);color:var(--accent)}
-.toc a.extra{background:var(--mark-soft);border-color:var(--mark)}
-
-/* karta pojęcia */
-.concept{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px clamp(16px,4vw,28px);display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
-.concept header{display:flex;flex-direction:column;gap:6px}
-.what{font-size:1.08rem}
-.what b{background:linear-gradient(transparent 60%,var(--mark-soft) 60%)}
-.remember{background:var(--mark-soft);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
-.remember strong{font:700 .75rem var(--mono);letter-spacing:.1em;text-transform:uppercase}
-.remember ul{margin:0;padding-left:1.1em}
-.why{border-left:3px solid var(--accent);padding:2px 0 2px 14px;color:var(--ink)}
-.why strong{color:var(--accent)}
-pre{margin:0;background:var(--code);color:var(--code-fg);border-radius:10px;padding:14px 16px;font:14.5px/1.6 var(--mono);overflow-x:auto;tab-size:4}
-pre.out{background:transparent;color:var(--ink);border:1px dashed var(--line);padding:10px 14px}
-pre.out::before{content:"wynik";display:block;font:600 .68rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-pre.err{background:var(--bad-soft);color:var(--bad);border:0}
-pre.err::before{content:"błąd";color:var(--bad)}
-.t-s{color:var(--c-str)} .t-n{color:var(--c-num)} .t-f{color:var(--c-fn)} .t-c{color:var(--c-com);font-style:italic} .t-k{color:var(--c-kw)}
-.pair{display:grid;grid-template-columns:1fr;gap:8px}
-.figure{background:var(--paper);border-radius:12px;padding:12px;overflow-x:auto}
-.figure svg{display:block;width:100%;height:auto;min-width:300px}
-.figure figcaption{font-size:.85rem;color:var(--muted);margin-top:6px}
-figure{margin:0}
-svg text{font-family:var(--mono);fill:var(--ink)}
-.tbl-wrap{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:.95rem}
-th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font:600 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-td code{white-space:nowrap}
-
-/* typy */
-.types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.type{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--paper)}
-.type .tn{font:700 1.15rem var(--mono);color:var(--accent)}
-.type .ex{font:500 .95rem var(--mono)}
-.type small{color:var(--muted);line-height:1.4}
-
-/* f-string anatomy */
-.anat{display:flex;flex-wrap:wrap;gap:2px;font:600 clamp(13px,3.6vw,17px)/1 var(--mono);align-items:flex-start;row-gap:10px}
-.anat .seg{display:flex;flex-direction:column;align-items:center;gap:6px}
-.anat .seg > span:first-child{padding:8px 3px;border-radius:6px}
-.anat .seg small{font:400 .7rem/1.2 var(--body);color:var(--muted);text-align:center;max-width:12ch}
-.seg.f > span:first-child{background:var(--accent);color:var(--card)}
-.seg.txt > span:first-child{background:var(--good-soft);color:var(--ink)}
-.seg.hole > span:first-child{background:var(--mark-soft);color:var(--ink);outline:2px solid var(--mark)}
-.seg.fmt > span:first-child{background:var(--bad-soft);color:var(--bad)}
-
-/* błędy */
-.errors{display:flex;flex-direction:column;gap:14px}
-.errcase{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.errcase h3{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.errcase h3 .tag{font:600 .72rem var(--mono);background:var(--bad-soft);color:var(--bad);padding:3px 7px;border-radius:5px}
-.fix{color:var(--good);font-weight:700}
-
-/* fiszki */
-.deck-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.progress{font:600 .85rem var(--mono);color:var(--muted)}
-.flash{perspective:1200px;cursor:pointer;min-height:230px;border:0;background:none;padding:0;width:100%;text-align:inherit;color:inherit;font:inherit}
-.flash-inner{position:relative;min-height:230px;transition:transform .5s;transform-style:preserve-3d}
-.flash.flipped .flash-inner{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;padding:22px;display:flex;flex-direction:column;justify-content:center;gap:10px;border:1px solid var(--line)}
-.face.front{background:var(--card)}
-.face.back{background:var(--accent-soft);transform:rotateY(180deg)}
-.face .lbl{font:600 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.face .q{font:700 1.3rem/1.3 var(--display)}
-.face .a{font-size:1.02rem}
-.face .hint{font-size:.8rem;color:var(--muted);margin-top:auto}
-.btns{display:flex;flex-wrap:wrap;gap:8px}
-button.btn{font:700 .95rem var(--body);border-radius:999px;padding:10px 18px;min-height:44px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-button.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--card)}
-button.btn.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
-button.btn.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
-button.btn:disabled{opacity:.4;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px clamp(18px,5vw,30px);display:flex;flex-direction:column;gap:18px}
+.one{font-size:1.2rem}
+.one b{background:linear-gradient(transparent 58%,var(--mark-soft) 58%)}
+.pic{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:16px;background:var(--paper);border-radius:14px;font:600 1rem var(--mono)}
+.box{border:2px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--card)}
+.box.ok{border-color:var(--good)} .box.no{border-color:var(--bad)}
+.tagname{background:var(--accent);color:var(--card);border-radius:999px;padding:8px 16px}
+.arrow{color:var(--accent);font-size:1.3rem}
+.hole{background:var(--mark-soft);padding:2px 4px;border-radius:4px}
+.lab{font:600 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+pre{margin:0;background:var(--code);color:var(--code-fg);border-radius:12px;padding:14px 16px;font:16px/1.6 var(--mono);overflow-x:auto}
+.out{border:2px dashed var(--line);border-radius:12px;padding:10px 16px;font:600 16px/1.6 var(--mono);white-space:pre;overflow-x:auto}
+.t-s{color:var(--c-str)} .t-n{color:var(--c-num)} .t-f{color:var(--c-fn)} .t-c{color:var(--c-com);font-style:italic}
+.trap{background:var(--bad-soft);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.trap strong{color:var(--bad);font:700 .75rem var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.trap .ok{color:var(--good);font-weight:700}
+.remember{background:var(--mark-soft);border-radius:12px;padding:14px 16px;font-weight:700}
+.remember::before{content:"Zapamiętaj: ";color:var(--accent)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid1{display:grid;gap:10px}
+.chip{border-radius:12px;padding:12px;background:var(--paper);display:flex;flex-direction:column;gap:2px;min-width:0}
+.chip b{font:700 1.05rem var(--mono);color:var(--accent);overflow-wrap:anywhere}
+.chip span{font:500 .95rem var(--mono)}
+.chip small{color:var(--muted);font-size:.85rem;line-height:1.3}
 
 /* quiz */
-.quiz{display:flex;flex-direction:column;gap:14px}
-.qitem{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.qitem .qn{font:600 .72rem var(--mono);color:var(--muted);letter-spacing:.1em}
-.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-.opt{font:500 .95rem var(--mono);text-align:left;padding:10px 12px;min-height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;overflow-wrap:anywhere}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{font:600 1.05rem var(--mono);text-align:left;padding:14px 16px;min-height:52px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 .opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
 .opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 .opt:disabled{cursor:default}
-.explain{font-size:.95rem;background:var(--paper);border-radius:8px;padding:10px 12px}
-.score{font:800 1.4rem var(--display)}
-.foot{color:var(--muted);font-size:.9rem;text-align:center}
-@media (min-width:640px){.pair{grid-template-columns:1fr 1fr}.types{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (prefers-reduced-motion:reduce){.flash-inner{transition:none}html{scroll-behavior:auto}}
-html{scroll-behavior:smooth}
+.explain{background:var(--paper);border-radius:12px;padding:12px 16px}
+.big{font:800 3rem var(--display);color:var(--accent);text-align:center}
+
+/* dolny pasek */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+  padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.nav-in{max-width:640px;margin:0 auto;display:flex;gap:10px}
+.btn{flex:1;font:700 1.05rem var(--body);border-radius:999px;padding:14px 18px;min-height:52px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--card)}
+.btn:disabled{opacity:.35;cursor:default}
 </style>
 
 <div class="wrap">
-
-<section class="hero">
-  <span class="eyebrow">Tydzień 1 · teoria do powtórek</span>
-  <h1>Ściąga z Pythona</h1>
-  <p class="lede">Wszystko, co przerobiłeś w pierwszym notebooku, wyjaśnione od środka: co dana rzecz robi i dlaczego Python zachowuje się właśnie tak. Na dole są fiszki i quiz do sprawdzenia się.</p>
-  <div class="terminal" aria-label="Przykład z notebooka"><span class="t-f">print</span>(<span class="t-s">f"Średni czas reakcji: </span>{srednia * <span class="t-n">1000</span>:.0f}<span class="t-s"> ms"</span>)<span class="out">Średni czas reakcji: 396 ms</span></div>
-  <p style="color:var(--muted);font-size:.95rem">Po tym tygodniu powinieneś rozumieć każdy znak w tej jednej linijce. Ściąga rozkłada ją na części.</p>
-</section>
-
-<nav aria-label="Spis treści">
-<ol class="toc">
-  <li><a href="#czytanie"><span>1</span>Jak Python czyta kod</a></li>
-  <li><a href="#print"><span>2</span>Funkcje i print()</a></li>
-  <li><a href="#zmienne"><span>3</span>Zmienne</a></li>
-  <li><a href="#typy"><span>4</span>Typy danych</a></li>
-  <li><a href="#dzialania"><span>5</span>Działania</a></li>
-  <li><a href="#srednia"><span>6</span>Średnia, min, max</a></li>
-  <li><a href="#round"><span>7</span>round()</a></li>
-  <li><a href="#fstring"><span>8</span>f-stringi</a></li>
-  <li><a href="#bledy"><span>9</span>Typowe błędy</a></li>
-  <li><a href="#fiszki" class="extra"><span>★</span>Fiszki</a></li>
-  <li><a href="#quiz" class="extra"><span>★</span>Quiz</a></li>
-</ol>
-</nav>
-
-<!-- 1 -->
-<section class="concept" id="czytanie">
-  <header><span class="eyebrow">1 · podstawa wszystkiego</span><h2>Jak Python czyta kod</h2></header>
-  <p class="what">Python to <b>interpreter</b>: czyta Twój kod <b>linijka po linijce, od góry do dołu</b> i od razu wykonuje każdą z nich. Nie „rozumie” intencji, robi dokładnie to, co jest napisane.</p>
-  <figure class="figure">
-    <svg viewBox="0 0 520 190" role="img" aria-label="Python wykonuje linie po kolei od góry do dołu">
-      <rect x="10" y="10" width="330" height="170" rx="10" fill="var(--code)"/>
-      <text x="26" y="44" style="fill:var(--c-com);font-size:14px"># komentarz – pomijany</text>
-      <text x="26" y="80" style="fill:var(--code-fg);font-size:14px">imie = "Kacper"</text>
-      <text x="26" y="116" style="fill:var(--code-fg);font-size:14px">wiek = 20</text>
-      <text x="26" y="152" style="fill:var(--code-fg);font-size:14px">print(imie, wiek)</text>
-      <path d="M360 76 V150" stroke="var(--accent)" stroke-width="3" fill="none"/>
-      <path d="M353 142 L360 156 L367 142 Z" fill="var(--accent)"/>
-      <text x="376" y="40" style="font-size:13px;fill:var(--muted)">pominięta</text>
-      <text x="376" y="80" style="font-size:13px">krok 1</text>
-      <text x="376" y="116" style="font-size:13px">krok 2</text>
-      <text x="376" y="152" style="font-size:13px">krok 3 → Kacper 20</text>
-    </svg>
-    <figcaption>Kolejność ma znaczenie. Gdyby <code>print(imie, wiek)</code> stało na górze, Python jeszcze nie znałby tych nazw.</figcaption>
-  </figure>
-  <p><b>Komentarz</b> to wszystko po znaku <code>#</code> do końca linii. Python go ignoruje, jest tylko dla ludzi (i dla Ciebie za miesiąc).</p>
-  <p><b>Komórki w Colabie</b> działają tak samo, tylko każda komórka to osobny kawałek. Python pamięta zmienne z komórek, które już <i>uruchomiłeś</i> (Shift + Enter), a nie z tych, które tylko widać wyżej na ekranie.</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li>Od góry do dołu, linia po linii.</li>
-    <li><code>#</code> = komentarz, Python go nie czyta.</li>
-    <li>W Colabie liczy się kolejność <i>uruchamiania</i> komórek.</li></ul></div>
-</section>
-
-<!-- 2 -->
-<section class="concept" id="print">
-  <header><span class="eyebrow">2 · funkcje</span><h2>Funkcje i print()</h2></header>
-  <p class="what"><b>Funkcja</b> to gotowa „maszynka” z nazwą. Dajesz jej coś na wejściu (<b>argumenty</b>), ona coś robi. <b>Nawiasy</b> po nazwie znaczą „uruchom teraz”.</p>
-  <figure class="figure">
-    <svg viewBox="0 0 520 170" role="img" aria-label="Budowa wywołania funkcji print">
-      <rect x="20" y="40" width="80" height="44" rx="8" fill="var(--accent)"/>
-      <text x="60" y="68" text-anchor="middle" style="fill:var(--card);font-size:18px;font-weight:600">print</text>
-      <rect x="104" y="40" width="22" height="44" rx="6" fill="var(--mark)"/>
-      <text x="115" y="68" text-anchor="middle" style="font-size:18px;fill:#14212b">(</text>
-      <rect x="130" y="40" width="150" height="44" rx="8" fill="var(--good-soft)" stroke="var(--good)"/>
-      <text x="205" y="68" text-anchor="middle" style="font-size:16px">"Wynik:"</text>
-      <text x="290" y="68" text-anchor="middle" style="font-size:18px">,</text>
-      <rect x="300" y="40" width="90" height="44" rx="8" fill="var(--good-soft)" stroke="var(--good)"/>
-      <text x="345" y="68" text-anchor="middle" style="font-size:16px">wiek</text>
-      <rect x="394" y="40" width="22" height="44" rx="6" fill="var(--mark)"/>
-      <text x="405" y="68" text-anchor="middle" style="font-size:18px;fill:#14212b">)</text>
-      <text x="60" y="114" text-anchor="middle" style="font-size:12px;fill:var(--muted)">nazwa</text>
-      <text x="60" y="130" text-anchor="middle" style="font-size:12px;fill:var(--muted)">funkcji</text>
-      <text x="260" y="114" text-anchor="middle" style="font-size:12px;fill:var(--muted)">argumenty, oddzielone przecinkiem</text>
-      <text x="410" y="114" text-anchor="middle" style="font-size:12px;fill:var(--muted)">nawiasy =</text>
-      <text x="410" y="130" text-anchor="middle" style="font-size:12px;fill:var(--muted)">„uruchom”</text>
-      <text x="20" y="22" style="font-size:12px;fill:var(--muted)">wywołanie funkcji:</text>
-      <text x="20" y="160" style="font-size:14px;fill:var(--accent)">→ Wynik: 20</text>
-    </svg>
-  </figure>
-  <div class="pair">
-    <pre class="py">print("Hej", "Kacper", 20)</pre>
-    <pre class="out">Hej Kacper 20</pre>
-  </div>
-  <p class="why"><strong>Dlaczego spacje?</strong> Gdy dajesz <code>print()</code> kilka argumentów po przecinku, sam wstawia między nimi spację. Dlatego nie musisz pisać <code>"Hej "</code> ze spacją na końcu.</p>
-  <p class="why"><strong>Dlaczego bez nawiasów nic się nie dzieje?</strong> Samo <code>print</code> to tylko <i>nazwa</i> maszynki, jakbyś wskazał na mikser palcem. Dopiero <code>print(...)</code> go włącza.</p>
-  <div class="pair">
-    <pre class="py">print</pre>
-    <pre class="out">&lt;built-in function print&gt;</pre>
-  </div>
-  <p>Funkcje, które już znasz: <code>print()</code> wypisuje, <code>type()</code> mówi, jakiego typu jest wartość, <code>round()</code> zaokrągla, <code>min()</code> i <code>max()</code> szukają najmniejszej i największej liczby.</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li><code>nazwa(argumenty)</code> – nawiasy zawsze tuż po nazwie.</li>
-    <li>Przecinek w <code>print</code> = spacja w wyniku.</li>
-    <li>Nie nadpisuj nazw funkcji (patrz <a href="#bledy">błędy</a>).</li></ul></div>
-</section>
-
-<!-- 3 -->
-<section class="concept" id="zmienne">
-  <header><span class="eyebrow">3 · pamięć programu</span><h2>Zmienne</h2></header>
-  <p class="what"><b>Zmienna</b> to <b>etykieta z nazwą</b> przyklejona do wartości. Dzięki niej możesz użyć tej wartości później, zamiast wpisywać ją od nowa.</p>
-  <figure class="figure">
-    <svg viewBox="0 0 520 210" role="img" aria-label="Zmienne jako etykiety wskazujące na wartości">
-      <g>
-        <rect x="16" y="22" width="120" height="36" rx="18" fill="var(--accent)"/>
-        <text x="76" y="46" text-anchor="middle" style="fill:var(--card);font-size:15px;font-weight:600">imie</text>
-        <path d="M140 40 H250" stroke="var(--accent)" stroke-width="2.5" fill="none"/>
-        <path d="M246 34 L258 40 L246 46 Z" fill="var(--accent)"/>
-        <rect x="262" y="18" width="150" height="44" rx="6" fill="var(--card)" stroke="var(--line)"/>
-        <text x="337" y="46" text-anchor="middle" style="font-size:15px">"Kacper"</text>
-      </g>
-      <g>
-        <rect x="16" y="86" width="120" height="36" rx="18" fill="var(--accent)"/>
-        <text x="76" y="110" text-anchor="middle" style="fill:var(--card);font-size:15px;font-weight:600">wiek</text>
-        <path d="M140 104 H250" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4" fill="none"/>
-        <rect x="262" y="82" width="70" height="44" rx="6" fill="var(--card)" stroke="var(--line)" opacity=".5"/>
-        <text x="297" y="110" text-anchor="middle" style="font-size:15px;fill:var(--muted)">20</text>
-        <path d="M268 88 L326 120" stroke="var(--bad)" stroke-width="2"/>
-        <path d="M140 108 Q 300 160 360 120" stroke="var(--accent)" stroke-width="2.5" fill="none"/>
-        <path d="M352 118 L364 116 L358 128 Z" fill="var(--accent)"/>
-        <rect x="364" y="82" width="70" height="44" rx="6" fill="var(--card)" stroke="var(--line)"/>
-        <text x="399" y="110" text-anchor="middle" style="font-size:15px">"20"</text>
-      </g>
-      <text x="16" y="178" style="font-size:12.5px;fill:var(--muted)">wiek = 20, potem wiek = "20": etykieta przeskakuje na nową wartość,</text>
-      <text x="16" y="196" style="font-size:12.5px;fill:var(--muted)">stara zostaje porzucona. Zmienna pamięta tylko ostatnie przypisanie.</text>
-    </svg>
-  </figure>
-  <pre class="py">imie = "Kacper"
-wiek = 20
-czas_reakcji = 0.342   # w sekundach
-student = True</pre>
-  <p class="why"><strong>Znak <code>=</code> to nie „równa się” z matematyki.</strong> To <b>przypisanie</b>: „weź to, co po prawej, i przyklej do tego nazwę z lewej”. Python najpierw liczy prawą stronę, potem przypisuje. Dlatego <code>wiek = wiek + 1</code> ma sens: weź stary wiek, dodaj 1, przyklej etykietę do wyniku.</p>
-  <h3>Zasady nazw</h3>
-  <div class="tbl-wrap"><table>
-    <tr><th>Dobrze</th><th>Źle</th><th>Dlaczego</th></tr>
-    <tr><td><code>czas_reakcji</code></td><td><code>czas reakcji</code></td><td>Spacja kończy nazwę. Słowa łącz podkreślnikiem (styl <i>snake_case</i>).</td></tr>
-    <tr><td><code>proba1</code></td><td><code>1proba</code></td><td>Nazwa nie może zaczynać się cyfrą.</td></tr>
-    <tr><td><code>srednia</code></td><td><code>print</code>, <code>round</code></td><td>To nazwy funkcji. Zadziała, ale zepsuje funkcję.</td></tr>
-    <tr><td><code>imie</code></td><td><code>Imie</code> zamiast <code>imie</code></td><td>Wielkość liter ma znaczenie: to dwie różne zmienne.</td></tr>
-  </table></div>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li><code>nazwa = wartość</code>, prawa strona liczona jest pierwsza.</li>
-    <li>Nowe przypisanie nadpisuje stare.</li>
-    <li>Małe litery, podkreślniki, bez spacji, nie od cyfry.</li></ul></div>
-</section>
-
-<!-- 4 -->
-<section class="concept" id="typy">
-  <header><span class="eyebrow">4 · rodzaje wartości</span><h2>Typy danych</h2></header>
-  <p class="what">Każda wartość ma <b>typ</b>, czyli rodzaj. Od typu zależy, co wolno z nią zrobić: liczby można dzielić, tekstu nie. Typ sprawdzasz funkcją <code>type()</code>.</p>
-  <div class="types">
-    <div class="type"><span class="tn">int</span><span class="ex">20, -3, 1000</span><small>liczba całkowita (<i>integer</i>)</small></div>
-    <div class="type"><span class="tn">float</span><span class="ex">0.342, 2.0</span><small>liczba z częścią ułamkową, zawsze z <b>kropką</b></small></div>
-    <div class="type"><span class="tn">str</span><span class="ex">"Kacper", "20"</span><small>tekst (<i>string</i>), zawsze w cudzysłowie</small></div>
-    <div class="type"><span class="tn">bool</span><span class="ex">True, False</span><small>prawda lub fałsz, z wielkiej litery</small></div>
-  </div>
-  <div class="pair">
-    <pre class="py">print(type(20))
-print(type("20"))
-print(type(0.342))</pre>
-    <pre class="out">&lt;class 'int'&gt;
-&lt;class 'str'&gt;
-&lt;class 'float'&gt;</pre>
-  </div>
-  <p class="why"><strong>Dlaczego <code>20</code> i <code>"20"</code> to coś innego?</strong> Cudzysłów mówi Pythonowi: „to są znaki do wyświetlenia, nie liczba”. <code>"20"</code> to dwa znaki, „2” i „0”, jak napis na kartce. Nie da się go podzielić przez 2, tak jak nie da się podzielić słowa „kot”.</p>
-  <p class="why"><strong>Dlaczego kropka, a nie przecinek?</strong> Python jest pisany po angielsku, a tam ułamki zapisuje się kropką: <code>0.342</code>. Przecinek w Pythonie ma inną robotę: oddziela elementy (np. argumenty w <code>print</code>).</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li>Cztery typy: <code>int</code>, <code>float</code>, <code>str</code>, <code>bool</code>.</li>
-    <li>Cudzysłów = tekst, nawet gdy w środku są cyfry.</li>
-    <li>Ułamki zawsze z kropką.</li></ul></div>
-</section>
-
-<!-- 5 -->
-<section class="concept" id="dzialania">
-  <header><span class="eyebrow">5 · kalkulator</span><h2>Działania arytmetyczne</h2></header>
-  <p class="what">Python liczy jak kalkulator i trzyma się <b>kolejności działań</b> z matematyki: najpierw nawiasy, potem potęgi, potem mnożenie i dzielenie, na końcu dodawanie i odejmowanie.</p>
-  <div class="tbl-wrap"><table>
-    <tr><th>Znak</th><th>Co robi</th><th>Przykład</th><th>Wynik</th></tr>
-    <tr><td><code>+</code></td><td>dodawanie</td><td><code>7 + 2</code></td><td><code>9</code></td></tr>
-    <tr><td><code>-</code></td><td>odejmowanie</td><td><code>7 - 2</code></td><td><code>5</code></td></tr>
-    <tr><td><code>*</code></td><td>mnożenie</td><td><code>7 * 2</code></td><td><code>14</code></td></tr>
-    <tr><td><code>/</code></td><td>dzielenie (zawsze daje float)</td><td><code>8 / 2</code></td><td><code>4.0</code></td></tr>
-    <tr><td><code>//</code></td><td>dzielenie bez reszty</td><td><code>7 // 2</code></td><td><code>3</code></td></tr>
-    <tr><td><code>%</code></td><td>reszta z dzielenia</td><td><code>7 % 2</code></td><td><code>1</code></td></tr>
-    <tr><td><code>**</code></td><td>potęga</td><td><code>7 ** 2</code></td><td><code>49</code></td></tr>
-  </table></div>
-  <figure class="figure">
-    <svg viewBox="0 0 520 200" role="img" aria-label="Porównanie kolejności działań z nawiasem i bez">
-      <text x="20" y="28" style="font-size:15px;font-weight:600">(a + b) / 2</text>
-      <rect x="20" y="44" width="150" height="34" rx="6" fill="var(--good-soft)" stroke="var(--good)"/>
-      <text x="95" y="66" text-anchor="middle" style="font-size:13px">1. a + b</text>
-      <path d="M95 80 V96" stroke="var(--good)" stroke-width="2"/>
-      <rect x="20" y="98" width="150" height="34" rx="6" fill="var(--good-soft)" stroke="var(--good)"/>
-      <text x="95" y="120" text-anchor="middle" style="font-size:13px">2. wynik / 2</text>
-      <text x="20" y="160" style="font-size:13px;fill:var(--good)">(300 + 400) / 2 = 350.0 ✓</text>
-      <text x="20" y="180" style="font-size:12px;fill:var(--muted)">średnia, o to chodziło</text>
-
-      <text x="280" y="28" style="font-size:15px;font-weight:600">a + b / 2</text>
-      <rect x="280" y="44" width="150" height="34" rx="6" fill="var(--bad-soft)" stroke="var(--bad)"/>
-      <text x="355" y="66" text-anchor="middle" style="font-size:13px">1. b / 2</text>
-      <path d="M355 80 V96" stroke="var(--bad)" stroke-width="2"/>
-      <rect x="280" y="98" width="150" height="34" rx="6" fill="var(--bad-soft)" stroke="var(--bad)"/>
-      <text x="355" y="120" text-anchor="middle" style="font-size:13px">2. a + wynik</text>
-      <text x="280" y="160" style="font-size:13px;fill:var(--bad)">300 + 400 / 2 = 500.0 ✗</text>
-      <text x="280" y="180" style="font-size:12px;fill:var(--muted)">dzielenie poszło pierwsze</text>
-    </svg>
-    <figcaption>Ten sam kod bez nawiasu daje zupełnie inną liczbę i Python nie zgłosi błędu. Dlatego przy średniej nawias wokół sumy jest obowiązkowy.</figcaption>
-  </figure>
-  <p class="why"><strong>Dlaczego <code>8 / 2</code> daje <code>4.0</code>, a nie <code>4</code>?</strong> Dzielenie może dać ułamek (np. <code>7 / 2 = 3.5</code>), więc Python dla bezpieczeństwa <i>zawsze</i> zwraca <code>float</code> ze znaku <code>/</code>. Tak samo z sekund na milisekundy: <code>0.342 * 1000</code> daje float.</p>
-  <p class="why"><strong>A tekst?</strong> <code>+</code> na dwóch tekstach je skleja: <code>"ko" + "gni"</code> daje <code>"kogni"</code>. Ale <code>"Wiek: " + 20</code> to błąd, bo Python nie wie, czy chcesz dodawać liczby, czy sklejać tekst. Rozwiązaniem są <a href="#fstring">f-stringi</a>.</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li>Kolejność: nawiasy → <code>**</code> → <code>* / // %</code> → <code>+ -</code>.</li>
-    <li><code>/</code> zawsze daje float.</li>
-    <li>Nie mieszaj tekstu z liczbą przez <code>+</code>.</li></ul></div>
-</section>
-
-<!-- 6 -->
-<section class="concept" id="srednia">
-  <header><span class="eyebrow">6 · pierwsza statystyka</span><h2>Średnia, min i max</h2></header>
-  <p class="what"><b>Średnia</b> to suma wszystkich wyników podzielona przez ich liczbę. <b>min()</b> zwraca najmniejszą, a <b>max()</b> największą z podanych liczb. W kognitywistyce to trzy pierwsze rzeczy, które liczy się z czasów reakcji.</p>
-  <figure class="figure">
-    <svg viewBox="0 0 540 290" role="img" aria-label="Wykres słupkowy sześciu czasów reakcji z linią średniej 396 ms">
-      <!-- skala: x = 80 + ms * 0.75 ; 0..600 ms -->
-      <g style="font-size:11px">
-        <line x1="80" y1="20" x2="80" y2="232" stroke="var(--line)"/>
-        <line x1="155" y1="20" x2="155" y2="232" stroke="var(--line)"/>
-        <line x1="230" y1="20" x2="230" y2="232" stroke="var(--line)"/>
-        <line x1="305" y1="20" x2="305" y2="232" stroke="var(--line)"/>
-        <line x1="380" y1="20" x2="380" y2="232" stroke="var(--line)"/>
-        <line x1="455" y1="20" x2="455" y2="232" stroke="var(--line)"/>
-        <line x1="530" y1="20" x2="530" y2="232" stroke="var(--line)"/>
-        <text x="80" y="250" text-anchor="middle" style="fill:var(--muted)">0</text>
-        <text x="155" y="250" text-anchor="middle" style="fill:var(--muted)">100</text>
-        <text x="230" y="250" text-anchor="middle" style="fill:var(--muted)">200</text>
-        <text x="305" y="250" text-anchor="middle" style="fill:var(--muted)">300</text>
-        <text x="380" y="250" text-anchor="middle" style="fill:var(--muted)">400</text>
-        <text x="455" y="250" text-anchor="middle" style="fill:var(--muted)">500</text>
-        <text x="520" y="250" text-anchor="end" style="fill:var(--muted)">600 ms</text>
-      </g>
-      <g style="font-size:12px">
-        <text x="70" y="44" text-anchor="end">proba1</text><rect x="80" y="28" width="256.5" height="24" rx="4" fill="var(--accent)" opacity=".55"/><text x="342" y="45">342</text>
-        <text x="70" y="78" text-anchor="end">proba2</text><rect x="80" y="62" width="300.75" height="24" rx="4" fill="var(--accent)" opacity=".55"/><text x="387" y="79">401</text>
-        <text x="70" y="112" text-anchor="end">proba3</text><rect x="80" y="96" width="223.5" height="24" rx="4" fill="var(--good)"/><text x="309" y="113" style="fill:var(--good);font-weight:600">298 min</text>
-        <text x="70" y="146" text-anchor="end">proba4</text><rect x="80" y="130" width="341.25" height="24" rx="4" fill="var(--accent)" opacity=".55"/><text x="427" y="147">455</text>
-        <text x="70" y="180" text-anchor="end">proba5</text><rect x="80" y="164" width="275.25" height="24" rx="4" fill="var(--accent)" opacity=".55"/><text x="361" y="181">367</text>
-        <text x="70" y="214" text-anchor="end">proba6</text><rect x="80" y="198" width="384" height="24" rx="4" fill="var(--bad)"/><text x="470" y="215" style="fill:var(--bad);font-weight:600">512 max</text>
-      </g>
-      <line x1="376.9" y1="18" x2="376.9" y2="236" stroke="var(--mark)" stroke-width="3" stroke-dasharray="6 4"/>
-      <rect x="326" y="264" width="102" height="22" rx="11" fill="var(--mark)"/>
-      <text x="377" y="279" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#14212b">średnia ≈ 396</text>
-    </svg>
-    <figcaption>Twoje dane z notebooka. Średnia (żółta linia) leży między najszybszą a najwolniejszą próbą. Jedna wolna próba (512) ciągnie ją w górę.</figcaption>
-  </figure>
-  <pre class="py">srednia = (proba1 + proba2 + proba3 + proba4 + proba5 + proba6) / 6
-najszybsza = min(proba1, proba2, proba3, proba4, proba5, proba6)
-najwolniejsza = max(proba1, proba2, proba3, proba4, proba5, proba6)</pre>
-  <pre class="out">srednia → 0.3958333333333333
-najszybsza → 0.298
-najwolniejsza → 0.512</pre>
-  <p class="why"><strong>Dlaczego dzielimy przez 6?</strong> Bo prób jest 6. Gdy dodasz siódmą, musisz zmienić też dzielnik. To częsty cichy błąd: kod działa, ale wynik jest zły. Za kilka tygodni poznasz listy i <code>len()</code>, które policzą to za Ciebie.</p>
-  <p class="why"><strong>Skąd tyle cyfr po kropce?</strong> Python pokazuje wynik z pełną dokładnością, jaką ma (ok. 16 cyfr). Komputer zapisuje ułamki w systemie dwójkowym, więc czasem na końcu pojawiają się drobne „okruchy”, np. <code>0.1 + 0.2</code> daje <code>0.30000000000000004</code>. To normalne, dlatego wyniki się <a href="#round">zaokrągla</a>.</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li>Średnia = (suma w nawiasie) / liczba wyników.</li>
-    <li><code>min(a, b, c)</code> i <code>max(a, b, c)</code> przyjmują wiele liczb po przecinku.</li>
-    <li>Wynik w ms: pomnóż sekundy przez 1000.</li></ul></div>
-</section>
-
-<!-- 7 -->
-<section class="concept" id="round">
-  <header><span class="eyebrow">7 · porządek w liczbach</span><h2>round(x, 2)</h2></header>
-  <p class="what"><code>round(liczba, ile_miejsc)</code> <b>zaokrągla</b> liczbę do podanej liczby miejsc po kropce. Drugi argument jest opcjonalny: bez niego dostajesz liczbę całkowitą.</p>
-  <figure class="figure">
-    <svg viewBox="0 0 520 150" role="img" aria-label="Działanie round na liczbie 0.395833">
-      <text x="20" y="34" style="font-size:20px;font-weight:600">0.39<tspan style="fill:var(--muted)">5833…</tspan></text>
-      <path d="M190 28 H250" stroke="var(--accent)" stroke-width="2.5"/><path d="M246 22 L258 28 L246 34 Z" fill="var(--accent)"/>
-      <text x="270" y="34" style="font-size:20px;font-weight:600;fill:var(--accent)">0.4</text>
-      <text x="340" y="34" style="font-size:12px;fill:var(--muted)">round(x, 2)</text>
-      <text x="20" y="62" style="font-size:12px;fill:var(--muted)">trzecia cyfra to 5, więc druga idzie w górę: 0.39 → 0.40, a Python nie pisze zera na końcu</text>
-      <text x="20" y="104" style="font-size:20px;font-weight:600">395.<tspan style="fill:var(--muted)">833…</tspan></text>
-      <path d="M190 98 H250" stroke="var(--accent)" stroke-width="2.5"/><path d="M246 92 L258 98 L246 104 Z" fill="var(--accent)"/>
-      <text x="270" y="104" style="font-size:20px;font-weight:600;fill:var(--accent)">396</text>
-      <text x="340" y="104" style="font-size:12px;fill:var(--muted)">round(x)</text>
-      <text x="20" y="132" style="font-size:12px;fill:var(--muted)">bez drugiego argumentu: do całości, wynik typu int</text>
-    </svg>
-  </figure>
-  <div class="pair">
-    <pre class="py">print(round(0.395833, 2))
-print(round(0.395833, 3))
-print(round(395.833))</pre>
-    <pre class="out">0.4
-0.396
-396</pre>
-  </div>
-  <p class="why"><strong>Dlaczego <code>0.4</code>, a nie <code>0.40</code>?</strong> <code>round()</code> zmienia <i>liczbę</i>, a liczba 0.40 to po prostu 0.4. Jeśli chcesz <i>wyświetlić</i> dokładnie dwa miejsca, użyj formatowania w f-stringu: <code>{x:.2f}</code> da <code>0.40</code>. Różnica: <code>round</code> zmienia wartość, <code>:.2f</code> zmienia tylko wygląd na ekranie.</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li><code>round(x, 2)</code> = dwa miejsca po kropce.</li>
-    <li><code>round(x)</code> = do liczby całkowitej.</li>
-    <li>Zera na końcu pokaże tylko <code>:.2f</code> w f-stringu.</li></ul></div>
-</section>
-
-<!-- 8 -->
-<section class="concept" id="fstring">
-  <header><span class="eyebrow">8 · tekst + liczby</span><h2>f-stringi</h2></header>
-  <p class="what"><b>f-string</b> to tekst z literką <code>f</code> przed cudzysłowem. W środku możesz wstawiać <b>okienka <code>{ }</code></b>, a Python w ich miejsce wpisze wartość zmiennej albo wynik obliczenia.</p>
-  <div class="figure">
-    <div class="anat" aria-label="Budowa f-stringa">
-      <div class="seg f"><span>f"</span><small>f + cudzysłów otwiera</small></div>
-      <div class="seg txt"><span>Wynik&nbsp;</span><small>zwykły tekst</small></div>
-      <div class="seg hole"><span>{imie}</span><small>okienko: wartość zmiennej</small></div>
-      <div class="seg txt"><span>:&nbsp;</span><small>tekst</small></div>
-      <div class="seg hole"><span>{srednia*1000</span><small>obliczenie w okienku</small></div>
-      <div class="seg fmt"><span>:.0f}</span><small>format: 0 miejsc</small></div>
-      <div class="seg txt"><span>&nbsp;ms</span><small>tekst</small></div>
-      <div class="seg f"><span>"</span><small>zamyka</small></div>
-    </div>
-  </div>
-  <div class="pair">
-    <pre class="py">imie = "Kacper"
-srednia = 0.395833
-print(f"Wynik {imie}: {srednia*1000:.0f} ms")</pre>
-    <pre class="out">Wynik Kacper: 396 ms</pre>
-  </div>
-  <h3>Formatowanie po dwukropku</h3>
-  <div class="tbl-wrap"><table>
-    <tr><th>Zapis</th><th>Znaczy</th><th>Dla 395.8333</th></tr>
-    <tr><td><code>{x}</code></td><td>pokaż jak jest</td><td><code>395.8333</code></td></tr>
-    <tr><td><code>{x:.0f}</code></td><td>0 miejsc po kropce</td><td><code>396</code></td></tr>
-    <tr><td><code>{x:.1f}</code></td><td>1 miejsce</td><td><code>395.8</code></td></tr>
-    <tr><td><code>{x:.2f}</code></td><td>2 miejsca</td><td><code>395.83</code></td></tr>
-  </table></div>
-  <p class="why"><strong>Dlaczego to wygodne?</strong> Bez f-stringa musiałbyś zamieniać liczby na tekst i sklejać plusami: <code>"Wynik: " + str(x) + " ms"</code>. f-string robi to sam, bo w okienku Python wie, że ma zamienić wartość na tekst.</p>
-  <p class="why"><strong>Bez litery f okienka nie działają.</strong> <code>"Wynik {imie}"</code> wypisze dosłownie <code>Wynik {imie}</code>, z nawiasami. Literka <code>f</code> to sygnał „szukaj okienek”.</p>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li><code>f"tekst {zmienna} tekst"</code></li>
-    <li>W <code>{ }</code> może być obliczenie: <code>{x * 1000}</code>.</li>
-    <li><code>:.2f</code> po dwukropku = ile miejsc po kropce pokazać.</li></ul></div>
-</section>
-
-<!-- 9 -->
-<section class="concept" id="bledy">
-  <header><span class="eyebrow">9 · czytanie błędów</span><h2>Typowe błędy i skąd się biorą</h2></header>
-  <p class="what">Błąd to nie porażka, tylko <b>wiadomość od Pythona</b>. Czytaj <b>ostatnią linijkę</b> komunikatu: najpierw jest nazwa błędu (np. <code>TypeError</code>), po dwukropku opis, co poszło nie tak.</p>
-  <div class="errors">
-
-    <div class="errcase">
-      <h3>Nadpisany print <span class="tag">TypeError</span></h3>
-      <pre class="py">print = "Hej"
-print("Kacper")</pre>
-      <pre class="out err">TypeError: 'str' object is not callable</pre>
-      <p><b>Co się stało:</b> pierwsza linia przykleiła etykietę <code>print</code> do tekstu „Hej”. Od tej chwili <code>print</code> to już nie funkcja, tylko napis. A napisu nie da się „uruchomić” nawiasami. <i>Callable</i> znaczy „da się wywołać”.</p>
-      <p class="fix">Naprawa: w Colabie Runtime → Restart session (Środowisko wykonawcze → Uruchom ponownie), usuń linię z <code>print =</code> i uruchom komórki jeszcze raz.</p>
-    </div>
-
-    <div class="errcase">
-      <h3>'float' object is not callable <span class="tag">TypeError</span></h3>
-      <pre class="py">round = 0.5
-print(round(srednia, 2))</pre>
-      <pre class="out err">TypeError: 'float' object is not callable</pre>
-      <p><b>Co się stało:</b> ten sam mechanizm. Nazwa funkcji <code>round</code> została przyklejona do liczby 0.5 (typ <code>float</code>), a potem próbujesz ją wywołać. Komunikat zawsze mówi, <i>czym</i> jest to, co próbujesz wywołać: tu liczbą.</p>
-      <p>Inna częsta przyczyna: brak znaku mnożenia. W matematyce <code>2(a + b)</code> znaczy mnożenie, ale w Pythonie nawias po czymś to wywołanie. <code>srednia(1000)</code> albo <code>2(3 + 4)</code> da ten sam typ błędu.</p>
-      <p class="fix">Naprawa: pisz mnożenie jawnie <code>srednia * 1000</code>, a gdy nadpisałeś funkcję, zrestartuj sesję.</p>
-    </div>
-
-    <div class="errcase">
-      <h3>Przecinek zamiast kropki <span class="tag">cichy błąd</span></h3>
-      <pre class="py">proba1 = 0,342
-print(proba1)
-print(type(proba1))</pre>
-      <pre class="out">(0, 342)
-&lt;class 'tuple'&gt;</pre>
-      <p><b>Co się stało:</b> przecinek oddziela elementy, więc Python widzi <i>dwie</i> liczby: 0 i 342, zapakowane razem (to tzw. krotka, <code>tuple</code>). Nie ma komunikatu o błędzie, ale potem dodawanie wywali <code>TypeError</code>, albo co gorsza policzy coś bez sensu.</p>
-      <p class="fix">Naprawa: ułamki zawsze z kropką: <code>0.342</code>.</p>
-    </div>
-
-    <div class="errcase">
-      <h3>Tekst plus liczba <span class="tag">TypeError</span></h3>
-      <pre class="py">print("Wiek: " + 20)</pre>
-      <pre class="out err">TypeError: can only concatenate str (not "int") to str</pre>
-      <p><b>Co się stało:</b> <i>concatenate</i> to „sklejać”. Python skleja tylko tekst z tekstem, a dostał liczbę.</p>
-      <p class="fix">Naprawa: <code>print(f"Wiek: {20}")</code> albo <code>print("Wiek:", 20)</code>.</p>
-    </div>
-
-    <div class="errcase">
-      <h3>Nieznana nazwa <span class="tag">NameError</span></h3>
-      <pre class="py">print(Imie)</pre>
-      <pre class="out err">NameError: name 'Imie' is not defined</pre>
-      <p><b>Co się stało:</b> Python nie zna takiej etykiety. Trzy typowe przyczyny: literówka, inna wielkość liter (<code>Imie</code> ≠ <code>imie</code>) albo komórka z przypisaniem nie została uruchomiona.</p>
-      <p class="fix">Naprawa: sprawdź pisownię i uruchom wcześniejsze komórki.</p>
-    </div>
-
-    <div class="errcase">
-      <h3>Brakujący nawias lub cudzysłów <span class="tag">SyntaxError</span></h3>
-      <pre class="py"># przykład A: brak nawiasu
-print("Hej"
-
-# przykład B: brak cudzysłowu
-print("Hej)</pre>
-      <pre class="out err">A → SyntaxError: '(' was never closed
-B → SyntaxError: unterminated string literal</pre>
-      <p><b>Co się stało:</b> <i>Syntax</i> to składnia, czyli gramatyka kodu. Każdy otwarty nawias i cudzysłów musi zostać zamknięty. Python często pokazuje błąd linię <i>niżej</i>, bo dopiero tam orientuje się, że czegoś brakuje.</p>
-      <p class="fix">Naprawa: licz pary: każdy <code>(</code> ma swój <code>)</code>, każdy <code>"</code> ma swój drugi <code>"</code>.</p>
-    </div>
-  </div>
-  <div class="remember"><strong>Zapamiętaj</strong><ul>
-    <li>Czytaj ostatnią linię komunikatu.</li>
-    <li><i>not callable</i> = coś, co nie jest funkcją, dostało nawiasy.</li>
-    <li>Gdy coś „dziwnie” nie działa w Colabie, zrestartuj sesję i uruchom wszystko od góry.</li></ul></div>
-</section>
-
-<!-- fiszki -->
-<section class="concept" id="fiszki">
-  <header><span class="eyebrow">★ powtórka</span><h2>Fiszki</h2></header>
-  <p>Przeczytaj pytanie, odpowiedz w głowie, dotknij karty, żeby ją odwrócić. Potem oceń się uczciwie. Karty, których jeszcze nie umiesz, wracają na koniec talii.</p>
-  <div class="deck-bar">
-    <span class="progress" id="deckProgress">Karta 1</span>
-    <span class="progress" id="deckKnown">Umiem: 0</span>
-  </div>
-  <button class="flash" id="flash" type="button" aria-live="polite">
-    <div class="flash-inner">
-      <div class="face front"><span class="lbl">pytanie</span><div class="q" id="fq"></div><span class="hint">dotknij, żeby odwrócić</span></div>
-      <div class="face back"><span class="lbl">odpowiedź</span><div class="a" id="fa"></div></div>
-    </div>
-  </button>
-  <div class="btns">
-    <button class="btn bad" id="again" type="button">Jeszcze nie umiem</button>
-    <button class="btn good" id="know" type="button">Umiem</button>
-    <button class="btn" id="reset" type="button">Zacznij od nowa</button>
-  </div>
-</section>
-
-<!-- quiz -->
-<section class="concept" id="quiz">
-  <header><span class="eyebrow">★ sprawdzian</span><h2>Quiz: co wypisze Python?</h2></header>
-  <p>Najpierw zgadnij w głowie, potem wybierz. Po odpowiedzi zobaczysz wyjaśnienie. Możesz też sprawdzić każdy przykład w Colabie.</p>
-  <div class="quiz" id="quizBox"></div>
-  <div class="deck-bar"><span class="score" id="score">0 / 0</span><button class="btn primary" id="quizReset" type="button">Rozwiąż jeszcze raz</button></div>
-</section>
-
-<p class="foot">Tydzień 1 z 12 · dane z notebooka <code>tydzien-01</code> · następny krok: zadanie tygodnia z własnymi czasami reakcji</p>
+  <div class="top"><h1>Python · tydzień 1</h1><span class="count" id="count"></span></div>
+  <div class="dots" id="dots" aria-label="Tematy"></div>
+  <main id="screen"></main>
 </div>
+<nav class="nav"><div class="nav-in">
+  <button class="btn" id="prev" type="button">← Wstecz</button>
+  <button class="btn primary" id="next" type="button">Dalej →</button>
+</div></nav>
+
+<template id="t0">
+  <section class="card">
+    <h2>print()</h2>
+    <p class="one"><b>print()</b> pokazuje coś na ekranie.</p>
+    <div class="pic"><span class="tagname">print</span><span class="arrow">+</span><span class="box">( )</span><span class="arrow">=</span><span class="box">uruchom!</span></div>
+    <div><div class="lab">kod</div><pre class="py">print("Hej", "Kacper")</pre></div>
+    <div><div class="lab">wynik</div><div class="out">Hej Kacper</div></div>
+    <div class="trap"><strong>Pułapka</strong><p>Bez nawiasów nic się nie stanie. Nawiasy znaczą „zrób to teraz”.</p></div>
+    <p class="remember">nazwa + nawiasy = działa.</p>
+  </section>
+</template>
+
+<template id="t1">
+  <section class="card">
+    <h2>Zmienna</h2>
+    <p class="one">Zmienna to <b>pudełko z nazwą</b>. Znak <code>=</code> wkłada coś do pudełka.</p>
+    <div class="pic"><span class="tagname">wiek</span><span class="arrow">→</span><span class="box">20</span></div>
+    <div><div class="lab">kod</div><pre class="py">wiek = 20
+print(wiek)</pre></div>
+    <div><div class="lab">wynik</div><div class="out">20</div></div>
+    <div class="trap"><strong>Pułapka</strong><p>Nowe <code>=</code> wyrzuca starą wartość. Po <code>wiek = 21</code> w pudełku jest już tylko 21.</p></div>
+    <p class="remember">nazwa po lewej, wartość po prawej.</p>
+  </section>
+</template>
+
+<template id="t2">
+  <section class="card">
+    <h2>Typy</h2>
+    <p class="one">Każda wartość ma <b>rodzaj</b>. Sprawdzisz go przez <code>type()</code>.</p>
+    <div class="grid2">
+      <div class="chip"><b>int</b><span>20</span><small>liczba całkowita</small></div>
+      <div class="chip"><b>float</b><span>0.342</span><small>liczba z kropką</small></div>
+      <div class="chip"><b>str</b><span>"Kacper"</span><small>tekst w cudzysłowie</small></div>
+      <div class="chip"><b>bool</b><span>True</span><small>prawda / fałsz</small></div>
+    </div>
+    <div class="trap"><strong>Pułapka</strong><p><code>20</code> to liczba, a <code>"20"</code> to tekst. Cudzysłów zawsze robi tekst.</p></div>
+    <p class="remember">cudzysłów = tekst.</p>
+  </section>
+</template>
+
+<template id="t3">
+  <section class="card">
+    <h2>Kropka, nie przecinek</h2>
+    <p class="one">W Pythonie ułamki piszesz <b>z kropką</b>, jak po angielsku.</p>
+    <div class="pic"><span class="box ok">0.342 ✓</span><span class="box no">0,342 ✗</span></div>
+    <div><div class="lab">kod z błędem</div><pre class="py">czas = 0,342
+print(czas)</pre></div>
+    <div><div class="lab">wynik</div><div class="out">(0, 342)</div></div>
+    <div class="trap"><strong>Pułapka</strong><p>Przecinek rozdziela rzeczy. Python widzi dwie liczby: 0 i 342.</p></div>
+    <p class="remember">0.342, zawsze kropka.</p>
+  </section>
+</template>
+
+<template id="t4">
+  <section class="card">
+    <h2>Liczenie i średnia</h2>
+    <p class="one">Python liczy jak kalkulator: <code>+ - * /</code>. <b>Mnożenie i dzielenie idą przed dodawaniem.</b></p>
+    <div class="pic"><span class="box">(300 + 400)</span><span class="arrow">/ 2 =</span><span class="box ok">350.0</span></div>
+    <div><div class="lab">średnia: suma w nawiasie, potem dzielenie</div><pre class="py">srednia = (proba1 + proba2 + proba3) / 3</pre></div>
+    <div class="trap"><strong>Pułapka</strong><p>Bez nawiasu <code>300 + 400 / 2</code> daje <b>500.0</b>, bo najpierw dzieli. Python nie pokaże błędu, po prostu źle policzy.</p></div>
+    <p class="remember">przy średniej zawsze nawias.</p>
+  </section>
+</template>
+
+<template id="t5">
+  <section class="card">
+    <h2>round, min, max</h2>
+    <p class="one">Trzy <b>pomocnicze funkcje</b> do liczb.</p>
+    <div class="grid1">
+      <div class="chip"><b>round(0.3958, 2)</b><span>→ 0.4</span><small>zaokrągla do 2 miejsc po kropce</small></div>
+      <div class="chip"><b>min(342, 298, 512)</b><span>→ 298</span><small>najmniejsza liczba (najszybsza próba)</small></div>
+      <div class="chip"><b>max(342, 298, 512)</b><span>→ 512</span><small>największa liczba (najwolniejsza próba)</small></div>
+    </div>
+    <div class="trap"><strong>Pułapka</strong><p>W nawiasie liczby oddzielasz <b>przecinkami</b>. Tu przecinek jest dobry, bo rozdziela liczby.</p></div>
+    <p class="remember">round = zaokrągla, min = najmniej, max = najwięcej.</p>
+  </section>
+</template>
+
+<template id="t6">
+  <section class="card">
+    <h2>f-string</h2>
+    <p class="one">Literka <code>f</code> przed tekstem pozwala wstawić zmienną w <b>klamry { }</b>.</p>
+    <div class="pic"><span class="tagname">f</span><span class="box">"Mam <span class="hole">{wiek}</span> lat"</span><span class="arrow">→</span><span class="box">Mam 20 lat</span></div>
+    <div><div class="lab">kod</div><pre class="py">wiek = 20
+print(f"Mam {wiek} lat")</pre></div>
+    <div><div class="lab">wynik</div><div class="out">Mam 20 lat</div></div>
+    <div class="trap"><strong>Pułapka</strong><p>Bez <code>f</code> wypisze dosłownie <code>Mam {wiek} lat</code>.</p><p>Bonus: <code>{x:.0f}</code> pokazuje liczbę bez miejsc po kropce.</p></div>
+    <p class="remember">f"tekst {zmienna}".</p>
+  </section>
+</template>
+
+<template id="t7">
+  <section class="card">
+    <h2>Gdy coś się psuje</h2>
+    <p class="one">Czytaj <b>ostatnią linijkę</b> błędu. Najczęstsze trzy:</p>
+    <div class="trap"><strong>not callable</strong><p>Nadpisałeś funkcję, np. <code>print = "Hej"</code> albo <code>round = 0.5</code>.</p><p class="ok">Zrestartuj sesję w Colabie i usuń tę linię.</p></div>
+    <div class="trap"><strong>NameError</strong><p>Literówka w nazwie albo nie uruchomiłeś komórki wyżej.</p><p class="ok">Sprawdź pisownię, uruchom komórki od góry.</p></div>
+    <div class="trap"><strong>SyntaxError</strong><p>Brakuje nawiasu <code>)</code> albo cudzysłowu <code>"</code>.</p><p class="ok">Policz pary: co otwarte, musi być zamknięte.</p></div>
+    <p class="remember">błąd to wskazówka, nie porażka.</p>
+  </section>
+</template>
 
 <script>
-// prosty koloryzator kodu Pythona
-(function(){
-  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  const re=/(#[^\n]*)|(f?"[^"\n]*"?)|\b(print|round|min|max|type|str|int|float)\b(?=\()|\b(True|False)\b|\b(\d+\.?\d*)\b/g;
-  document.querySelectorAll("pre.py").forEach(el=>{
-    const src=el.textContent; let out="",last=0,m;
-    while((m=re.exec(src))){
-      out+=esc(src.slice(last,m.index));
-      const cls=m[1]?"t-c":m[2]?"t-s":m[3]?"t-f":m[4]?"t-k":"t-n";
-      out+=`<span class="${cls}">${esc(m[0])}</span>`; last=re.lastIndex;
-    }
-    el.innerHTML=out+esc(src.slice(last));
-  });
-})();
-
-// fiszki
-const CARDS=[
-  ["Co znaczy, że Python jest interpreterem?","Czyta i wykonuje kod linijka po linijce, od góry do dołu."],
-  ["Co robi znak # ?","Zaczyna komentarz. Python ignoruje wszystko od # do końca linii."],
-  ["Co znaczą nawiasy po nazwie, np. print( )?","„Uruchom tę funkcję teraz”. W środku są argumenty, czyli dane dla funkcji."],
-  ["Co wypisze print(\"a\", \"b\", 3)?","a b 3 – przecinki w print zamieniają się w spacje."],
-  ["Czym jest zmienna?","Etykietą z nazwą przyklejoną do wartości, np. wiek = 20."],
-  ["Co robi znak = w Pythonie?","Przypisuje: liczy prawą stronę i przykleja do wyniku nazwę z lewej. To nie jest „równa się”."],
-  ["Jakie są 4 podstawowe typy?","int (całkowita), float (z kropką), str (tekst), bool (True/False)."],
-  ["Czym różni się 20 od \"20\"?","20 to liczba (int), \"20\" to tekst (str) złożony ze znaków 2 i 0."],
-  ["Dlaczego 0.342, a nie 0,342?","Python używa kropki dziesiętnej. Przecinek oddziela elementy, więc 0,342 to para (0, 342)."],
-  ["Jaki typ zwraca zawsze dzielenie / ?","float, np. 8 / 2 daje 4.0."],
-  ["Co robią // i %?","// dzieli bez reszty (7 // 2 = 3), % daje resztę (7 % 2 = 1)."],
-  ["Dlaczego średnia potrzebuje nawiasu?","Bez niego dzielenie idzie przed dodawaniem: a + b / 2 to nie średnia. Poprawnie: (a + b) / 2."],
-  ["Co zwracają min(3, 1, 2) i max(3, 1, 2)?","min → 1, max → 3."],
-  ["Co da round(3.14159, 2), a co round(3.7)?","3.14 oraz 4 (bez drugiego argumentu zaokrągla do całości)."],
-  ["round(x, 2) czy {x:.2f}?","round zmienia samą liczbę, :.2f tylko sposób wyświetlenia (pokaże też zera, np. 0.40)."],
-  ["Jak zbudowany jest f-string?","f przed cudzysłowem i okienka { } w środku, np. f\"Mam {wiek} lat\"."],
-  ["Co znaczy 'float' object is not callable?","Dałeś nawiasy czemuś, co jest liczbą, a nie funkcją. Np. nadpisałeś round = 0.5 albo napisałeś 2(x) zamiast 2 * x."],
-  ["Co zrobić, gdy nadpisałem print?","Zrestartować sesję w Colabie, usunąć linię print = … i uruchomić komórki od nowa."],
-  ["Skąd NameError?","Python nie zna nazwy: literówka, inna wielkość liter albo nieuruchomiona komórka."],
-  ["Którą linię komunikatu błędu czytać?","Ostatnią: nazwa błędu, dwukropek, opis."]
-];
-const LS="sciaga-t1-fiszki";
-let deck, known, flipped=false;
-function load(){try{const s=JSON.parse(localStorage.getItem(LS)||"null");if(s&&Array.isArray(s.deck)&&s.deck.length){deck=s.deck;known=s.known||[];return}}catch(e){}deck=CARDS.map((_,i)=>i);known=[];}
-function save(){try{localStorage.setItem(LS,JSON.stringify({deck,known}))}catch(e){}}
-const $=id=>document.getElementById(id);
-function render(){
-  const f=$("flash"); f.classList.remove("flipped"); flipped=false;
-  $("deckKnown").textContent=`Umiem: ${known.length} / ${CARDS.length}`;
-  if(!deck.length){$("fq").textContent="Wszystkie karty opanowane! 🎉";$("fa").textContent="Kliknij „Zacznij od nowa”, żeby powtórzyć całość.";$("deckProgress").textContent="Koniec talii";$("know").disabled=$("again").disabled=true;return}
-  $("know").disabled=$("again").disabled=false;
-  const c=CARDS[deck[0]]; $("fq").textContent=c[0]; $("fa").textContent=c[1];
-  $("deckProgress").textContent=`Zostało kart: ${deck.length}`;
-}
-$("flash").addEventListener("click",()=>{flipped=!flipped;$("flash").classList.toggle("flipped",flipped)});
-$("know").addEventListener("click",()=>{known.push(deck.shift());save();render()});
-$("again").addEventListener("click",()=>{deck.push(deck.shift());save();render()});
-$("reset").addEventListener("click",()=>{deck=CARDS.map((_,i)=>i).sort(()=>Math.random()-.5);known=[];save();render()});
-load();render();
-
-// quiz
+const TOPICS=8;
 const QUIZ=[
-  {code:'x = 5\nx = x + 2\nprint(x)',opts:["5","7","x + 2","błąd"],a:1,why:"Prawa strona liczy się pierwsza: 5 + 2 = 7, a potem etykieta x przeskakuje na 7."},
-  {code:'print(type("3.5"))',opts:["<class 'float'>","<class 'str'>","<class 'int'>","3.5"],a:1,why:"Cudzysłów robi z tego tekst, nawet jeśli w środku są cyfry."},
-  {code:'print(10 / 2)',opts:["5","5.0","2","błąd"],a:1,why:"Znak / zawsze daje float, więc 5.0."},
-  {code:'print(300 + 400 / 2)',opts:["350.0","500.0","350","700"],a:1,why:"Dzielenie przed dodawaniem: 400 / 2 = 200.0, potem 300 + 200.0 = 500.0. Na średnią potrzebny jest nawias."},
-  {code:'print(7 % 3)',opts:["2","1","2.33","0"],a:1,why:"% to reszta z dzielenia: 7 = 2·3 + 1."},
-  {code:'print(round(2.678, 1))',opts:["2.6","2.7","3","2.68"],a:1,why:"Jedno miejsce po kropce. Druga cyfra (7) każe zaokrąglić w górę: 2.7."},
-  {code:'print(min(0.41, 0.29, 0.35))',opts:["0.41","0.29","0.35","1.05"],a:1,why:"min zwraca najmniejszą z podanych liczb."},
-  {code:'imie = "Ola"\nprint(f"Hej {imie}!")',opts:["Hej {imie}!","Hej Ola!","Hej imie!","błąd"],a:1,why:"Litera f włącza okienka, więc {imie} zamienia się na Ola."},
-  {code:'imie = "Ola"\nprint("Hej {imie}!")',opts:["Hej Ola!","Hej {imie}!","błąd","Hej !"],a:1,why:"Bez f przed cudzysłowem to zwykły tekst, okienka nie działają."},
-  {code:'x = 0.4567\nprint(f"{x:.2f}")',opts:["0.4567","0.46","0.45","0.5"],a:1,why:":.2f pokazuje dwa miejsca po kropce, z zaokrągleniem."},
-  {code:'t = 0,5\nprint(t)',opts:["0.5","(0, 5)","błąd","5"],a:1,why:"Przecinek oddziela elementy, więc powstaje para (0, 5). Ułamek pisz z kropką."},
-  {code:'print("Wynik: " + 10)',opts:["Wynik: 10","Wynik:10","TypeError","NameError"],a:2,why:"Tekstu nie da się skleić z liczbą przez +. Użyj f-stringa albo przecinka w print."},
-  {code:'max = 9\nprint(max(1, 2))',opts:["2","9","TypeError: 'int' object is not callable","NameError"],a:2,why:"Nazwa max przestała być funkcją i wskazuje na liczbę 9. Liczby nie da się wywołać nawiasami."},
-  {code:'wynik = 2(3 + 4)\nprint(wynik)',opts:["14","7","TypeError: 'int' object is not callable","SyntaxError"],a:2,why:"W Pythonie nawias po czymś oznacza wywołanie. Mnożenie trzeba napisać: 2 * (3 + 4)."}
+  {q:'print("Ala", 5)',opts:["Ala 5","Ala5","błąd"],a:0,why:"Przecinek w print daje spację."},
+  {q:'x = 3\nx = 7\nprint(x)',opts:["3","7","10"],a:1,why:"Nowe = wyrzuca starą wartość."},
+  {q:'print(type("20"))',opts:["<class 'int'>","<class 'str'>","<class 'float'>"],a:1,why:"Cudzysłów = tekst (str)."},
+  {q:'print(100 + 200 / 2)',opts:["150.0","200.0","300"],a:1,why:"Najpierw dzielenie: 200 / 2 = 100.0, potem 100 + 100.0."},
+  {q:'print(max(4, 9, 2))',opts:["2","9","15"],a:1,why:"max = największa."},
+  {q:'print(round(2.678, 1))',opts:["2.6","2.7","3"],a:1,why:"1 miejsce po kropce, a 7 zaokrągla w górę."},
+  {q:'imie = "Ola"\nprint(f"Hej {imie}")',opts:["Hej {imie}","Hej Ola","Hej imie"],a:1,why:"Z literą f klamry wstawiają wartość."},
+  {q:'t = 0,5\nprint(t)',opts:["0.5","(0, 5)","5"],a:1,why:"Przecinek rozdziela, więc są dwie liczby."}
 ];
-let answered=0, correct=0;
-function buildQuiz(){
-  const box=$("quizBox"); box.innerHTML=""; answered=0; correct=0; updScore();
-  QUIZ.forEach((q,i)=>{
-    const d=document.createElement("div"); d.className="qitem";
-    d.innerHTML=`<span class="qn">PYTANIE ${i+1} Z ${QUIZ.length}</span><pre class="py"></pre><div class="opts"></div><div class="explain" hidden></div>`;
-    d.querySelector("pre").textContent=q.code;
-    const opts=d.querySelector(".opts");
-    const order=q.opts.map((_,j)=>j).sort(()=>Math.random()-.5);
-    order.forEach(j=>{ const o=q.opts[j];
-      const b=document.createElement("button"); b.type="button"; b.className="opt"; b.textContent=o; b.dataset.j=j;
-      b.addEventListener("click",()=>{
-        opts.querySelectorAll("button").forEach(x=>{x.disabled=true;if(+x.dataset.j===q.a)x.classList.add("right")});
-        if(j!==q.a)b.classList.add("wrong"); else correct++;
-        answered++; updScore();
-        const ex=d.querySelector(".explain"); ex.hidden=false; ex.innerHTML=`<b>${j===q.a?"Dobrze!":"Nie tym razem."}</b> `; ex.append(q.why);
-      });
-      opts.append(b);
-    });
-    box.append(d);
-  });
-  // pokoloruj kod w pytaniach
-  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  const re=/(#[^\n]*)|(f?"[^"\n]*"?)|\b(print|round|min|max|type|str|int|float)\b(?=\()|\b(True|False)\b|\b(\d+\.?\d*)\b/g;
-  box.querySelectorAll("pre.py").forEach(el=>{const src=el.textContent;let out="",last=0,m;re.lastIndex=0;
-    while((m=re.exec(src))){out+=esc(src.slice(last,m.index));const cls=m[1]?"t-c":m[2]?"t-s":m[3]?"t-f":m[4]?"t-k":"t-n";out+=`<span class="${cls}">${esc(m[0])}</span>`;last=re.lastIndex}
-    el.innerHTML=out+esc(src.slice(last));});
+const TOTAL=TOPICS+QUIZ.length+1;
+let i=0, answers={};
+try{const s=JSON.parse(localStorage.getItem("sciaga-t1-krok")||"null");if(s&&typeof s.i==="number"&&s.i>=0&&s.i<TOPICS)i=s.i}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const re=/(#[^\n]*)|(f?"[^"\n]*")|\b(print|round|min|max|type)\b(?=\()|\b(\d+\.?\d*)\b/g;
+function color(el){const src=el.textContent;let out="",last=0,m;re.lastIndex=0;
+  while((m=re.exec(src))){out+=esc(src.slice(last,m.index));const c=m[1]?"t-c":m[2]?"t-s":m[3]?"t-f":"t-n";out+=`<span class="${c}">${esc(m[0])}</span>`;last=re.lastIndex}
+  el.innerHTML=out+esc(src.slice(last));}
+
+function dots(){
+  const d=$("dots");d.innerHTML="";
+  const add=(label,k,cls,aria)=>{const b=document.createElement("button");b.type="button";b.className="dot"+cls;b.textContent=label;b.setAttribute("aria-label",aria);b.onclick=()=>go(k);d.append(b)};
+  for(let k=0;k<TOPICS;k++)add(k+1,k,k===i?" now":k<i?" done":"","Temat "+(k+1));
+  add("?",TOPICS,i>=TOPICS?" now":"","Quiz");
 }
-function updScore(){$("score").textContent=`${correct} / ${QUIZ.length}`+(answered===QUIZ.length?(correct===QUIZ.length?" · komplet!":" · przeczytaj wyjaśnienia przy błędnych"):"")}
-$("quizReset").addEventListener("click",buildQuiz);
-buildQuiz();
+function render(){
+  const s=$("screen");s.innerHTML="";
+  if(i<TOPICS){
+    s.append($("t"+i).content.cloneNode(true));
+    $("count").textContent=`Temat ${i+1} z ${TOPICS}`;
+  }else if(i<TOPICS+QUIZ.length){
+    const n=i-TOPICS,q=QUIZ[n];
+    $("count").textContent=`Quiz ${n+1} z ${QUIZ.length}`;
+    const c=document.createElement("section");c.className="card";
+    c.innerHTML=`<h2>Co wypisze Python?</h2><pre class="py"></pre><div class="opts"></div><div class="explain" hidden></div>`;
+    c.querySelector("pre").textContent=q.q;
+    const box=c.querySelector(".opts"),ex=c.querySelector(".explain");
+    const show=j=>{box.querySelectorAll("button").forEach(b=>{b.disabled=true;const k=+b.dataset.j;if(k===q.a)b.classList.add("right");if(k===j&&j!==q.a)b.classList.add("wrong")});
+      ex.hidden=false;ex.innerHTML=`<b>${j===q.a?"Dobrze!":"Prawie."}</b> `;ex.append(q.why)};
+    q.opts.forEach((o,j)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;b.dataset.j=j;
+      b.onclick=()=>{answers[n]=j;show(j)};box.append(b)});
+    s.append(c); if(n in answers)show(answers[n]);
+  }else{
+    const score=QUIZ.reduce((t,q,n)=>t+(answers[n]===q.a?1:0),0);
+    $("count").textContent="Wynik";
+    const c=document.createElement("section");c.className="card";
+    c.innerHTML=`<h2>Twój wynik</h2><p class="big">${score} / ${QUIZ.length}</p><p class="one">${score===QUIZ.length?"Komplet! Wróć tu za kilka dni i sprawdź, czy dalej pamiętasz.":"Wróć do tematów, w których się pomyliłeś, i spróbuj jeszcze raz."}</p><button class="btn primary" type="button" id="again">Quiz od nowa</button>`;
+    s.append(c);$("again").onclick=()=>{answers={};go(TOPICS)};
+  }
+  s.querySelectorAll("pre.py").forEach(color);
+  $("prev").disabled=i===0;
+  $("next").textContent=i===TOPICS-1?"Quiz →":i===TOTAL-1?"Od początku":"Dalej →";
+  dots();
+  try{localStorage.setItem("sciaga-t1-krok",JSON.stringify({i}))}catch(e){}
+}
+function go(k){i=Math.max(0,Math.min(TOTAL-1,k));render();window.scrollTo({top:0})}
+$("prev").onclick=()=>go(i-1);
+$("next").onclick=()=>go(i===TOTAL-1?0:i+1);
+render();
 </script>
